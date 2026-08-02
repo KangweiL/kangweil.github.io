@@ -1,12 +1,7 @@
-// MathJax config — must be set before MathJax loads
 window.MathJax = {
   tex: {
-    inlineMath:  [['$', '$'], ['\\(', '\\)']],
-    displayMath: [['$$', '$$'], ['\\[', '\\]']],
-    processEscapes: true
-  },
-  options: {
-    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+    inlineMath: [['$', '$']],
+    displayMath: [['$$', '$$']]
   }
 };
 
@@ -15,13 +10,13 @@ window.MathJax = {
 
   marked.setOptions({ gfm: true, breaks: false });
 
-  const gridView   = document.getElementById("grid-view");
-  const postView   = document.getElementById("post-view");
-  const cardGrid   = document.getElementById("card-grid");
-  const postBody   = document.getElementById("post-body");
-  const backBtn    = document.getElementById("back-btn");
-  const searchBox  = document.getElementById("search");
-  const noResults  = document.getElementById("no-results");
+  const gridView  = document.getElementById("grid-view");
+  const postView  = document.getElementById("post-view");
+  const cardGrid  = document.getElementById("card-grid");
+  const postBody  = document.getElementById("post-body");
+  const backBtn   = document.getElementById("back-btn");
+  const searchBox = document.getElementById("search");
+  const noResults = document.getElementById("no-results");
   const filterBtns = document.querySelectorAll(".filter-btn");
 
   let activeFilter = "all";
@@ -36,7 +31,7 @@ window.MathJax = {
     };
   }
 
-  function tagHtml(tags) {
+  function tagHtml(tags, size) {
     return tags.map(t => `<span class="tag ${t}">${t}</span>`).join("");
   }
 
@@ -99,30 +94,7 @@ window.MathJax = {
       const res = await fetch(meta.file);
       if (!res.ok) throw new Error();
       let md = await res.text();
-
-      // Strip YAML front-matter
-      md = md.replace(/^---[\s\S]*?---\n?/, "");
-
-      // Protect display math $$...$$ from being mangled by marked
-      const mathBlocks = [];
-      md = md.replace(/\$\$([\s\S]*?)\$\$/g, (match) => {
-        mathBlocks.push(match);
-        return `%%%MATHBLOCK${mathBlocks.length - 1}%%%`;
-      });
-
-      // Protect inline math $...$ 
-      const inlineMath = [];
-      md = md.replace(/\$([^\$\n]+?)\$/g, (match) => {
-        inlineMath.push(match);
-        return `%%%INLINEMATH${inlineMath.length - 1}%%%`;
-      });
-
-      // Render markdown
-      let html = marked.parse(md);
-
-      // Restore math blocks
-      html = html.replace(/%%%MATHBLOCK(\d+)%%%/g, (_, i) => mathBlocks[i]);
-      html = html.replace(/%%%INLINEMATH(\d+)%%%/g, (_, i) => inlineMath[i]);
+      md = md.replace(/^---[\s\S]*?---\n?/, ""); // strip front-matter
 
       const dt = formatDate(meta.date);
       postBody.innerHTML = `
@@ -131,14 +103,9 @@ window.MathJax = {
           <h1 class="post-meta-title">${meta.title}</h1>
           <div class="post-meta-tags">${tagHtml(meta.tags)}</div>
         </div>
-        ${html}
+        ${marked.parse(md)}
       `;
-
-      // Typeset math
-      if (window.MathJax && window.MathJax.typesetPromise) {
-        window.MathJax.typesetPromise([postBody]);
-      }
-
+      if (window.MathJax) MathJax.typesetPromise([postBody]);
     } catch {
       postBody.innerHTML = `<p style="color:var(--muted)">Could not load post. Make sure <code>${meta.file}</code> exists.</p>`;
     }
