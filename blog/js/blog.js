@@ -1,3 +1,10 @@
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$']],
+    displayMath: [['$$', '$$']]
+  }
+};
+
 (function () {
   "use strict";
 
@@ -98,6 +105,7 @@
         </div>
         ${marked.parse(md)}
       `;
+      if (window.MathJax) MathJax.typesetPromise([postBody]);
     } catch {
       postBody.innerHTML = `<p style="color:var(--muted)">Could not load post. Make sure <code>${meta.file}</code> exists.</p>`;
     }
