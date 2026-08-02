@@ -10,12 +10,20 @@
 // ─────────────────────────────────────────────────────────────
 const POSTS = [
   {
+  file:    "posts/2026-07-30-Primal-dual-algorithm-for-CMDP.md",
+  title:   "Primal-dual Approach toward CMDP",
+  date:    "2026-07-30",
+  tags:    ["research"],
+  excerpt: "A literature review on primal-dual algorithms for constrained Markov decision processes, organizing key papers and approaches."
+  },
+  
+  {
     file:    "posts/2026-04-26-getting-started.md",
     title:   "Getting Started with This Journal",
     date:    "2026-04-26",
     tags:    ["misc"],
     excerpt: "Why I'm keeping a daily academic journal and how this site works."
-  },
+  }
   // {
   //   file:    "posts/2026-04-26-subgradient.md",
   //   title:   "Reading Notes: Subgradient methods",
