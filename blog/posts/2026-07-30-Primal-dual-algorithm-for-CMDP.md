@@ -1,0 +1,97 @@
+---
+title: Primal-dual Approach toward CMDP
+date: 2026-07-30
+tags: [research]
+---
+
+# Primal-dual Approach toward CMDP
+
+In this notes, I want to record the literature review on the primal-dual algorithms for constrained Markov decision process (CMDP).
+
+## Background
+
+My current research is about the application of Wasserstein policy gradient method on CMDP with primal policy entropy regularized. Through some searching and reading, I found [Ying's paper](https://arxiv.org/pdf/2110.08923) particularly illuminating, since it also considers a primal-dual algorithm for entropy-regularized CMDP. Besides, [Chen's paper](https://doi.org/10.1287/mnsc.2022.03736), [Ding's paper](https://arxiv.org/pdf/2306.11700) are also helpful. There are many other papers considering similar approach, so in this note I want to organize the algorithms in a clearer way.
+
+## Preliminary on Constrained MDP
+
+A standard Markov decision process contains an agent, a state space of agent $\mathcal S$, an action space for the agent $\mathcal A$, a state transition kernel $P(\cdot|s,a)$ and a reward function $r(s,a)$.
+
+We consider the discrete-time, discounted accumulation reward version. The agent will go through time steps $n=0,1,\cdots$, being in some state $s\in \mathcal S$, taking some action $a\in \mathcal A$ and getting reward according to its state and action $r(s,a)$ at each time step. The state of the agent at time $n+1$ depends on the state and action of agent at time $n$ according to the state transition kernel $s_{n+1}\sim P(\cdot|s_n,a_n).$
+
+The policy of the agent is the rule of the agent for taking actions given states, and mathematically a probability measure over the action space. The policy is Markov if the policy depends solely on the current state. We consider Markov policy here.
+
+
+The reward can be soft sometimes. If the state $s\sim \rho\in \Delta(\mathcal S)$, then the soft reward is
+\[
+    \mathbb E_{s\sim \rho,\ a\sim \pi(\cdot|s)}[r(s,a)]\]
+
+The discounted accumulated total reward of one policy $\pi\in \Delta(\mathcal A)^{\mathcal S}$ will be
+\[
+    R(\pi) = \sum_{n=0}^\infty \gamma^nr(s_n,a_n),\]
+where the initial state distribution $s_0\sim\rho_0$ is given.
+
+Similarly, we can define the discounted cost of a policy given some cost functions $c_i(s,a)$ as above $C_i(\pi)$. We may have some constraint $C_i(\pi)\le b_i,\ i=1,\cdots, m$ for the policy. The constrained MDP is the optimization problem where decision variable is policy
+\[
+\begin{aligned}
+    &\max_\pi J(\pi)\\
+    &s.t. \; C_i(\pi)\ge 0,\; i=1,\cdots,m.
+\end{aligned}
+\]
+
+### Application of Constrained MDP
+
+Here to illustrate the broad applicability and substantial practical utility of CMDP, we give a few instances and references on the application of CMDP in various settings.
+
+#### Inventory Management
+
+References: [Chen et al.](https://doi.org/10.1287/mnsc.2022.03736)
+
+#### Emergency Department Patient Scheduling
+
+References: [Giard et al.](https://doi.org/10.1002/nav.21893)
+
+## Primal-dual Approach
+
+We want to utilize the policy-gradient based algorithms for MDPs in our constrained setting. This idea requires a Lagrangian formulation of the problem and a strong duality theorem to faciliate the application of classic algorithms for MDPs. The primal-dual approach for the CMDP grows from this idea (this idea comes from [Le et al.](https://arxiv.org/pdf/1903.08738)).
+
+### Basics
+
+#### Duality Problem and Duality Theorem
+
+First we can transform the initial problem into a Lagrangian max-min problem
+\[
+    \max_\pi \min_{\lambda\in \mathbb R^m_+} L(\pi,\lambda) = J(\pi)+\lambda^TC(\pi),\]
+where $C(\pi) = (C_1(\pi),\cdots,C_m(\pi))^T.$
+Then if the strong duality for our problem holds, by switching the sequence of taking maximum and minimum, we can convert the inner problem into a normal reinforcement learning problem that arguments the dual multiplier term into the reward function. 
+\[
+    \max_\pi \min_{\lambda\in \mathbb R^m_+} L(\pi,\lambda)  = \min_{\lambda\in \mathbb R^m_+}\max_\pi L(\pi,\lambda) = J(\pi)+\lambda^TC(\pi)\]
+Then we can solve the dual problem by updating the policy by a policy-gradient based method toward the best response policy given current multiplier, and then updating the multiplier according to the gradient information provided by the approximated policy. Since the policy gradient provided by the policy is not accurate, we want the outer optimization method for the dual multiplier to be robust. Thus we mostly apply first-order method to update the dual multiplier.
+
+The duality in literature is often established for CMDPs with finite action space:
+
+- [Le et al.](https://arxiv.org/pdf/1903.08738): compact state space, finite action space, convex policy famlily (What linearity structure is the convexity of policy set established on?)
+- [Chen et al.](https://doi.org/10.1287/mnsc.2022.03736) (Section 4, based on [Altman](https://www-sop.inria.fr/members/Eitan.Altman/TEMP/h.pdf)) 
+  1. strong duality holds for finite state space and action space
+  2. further for countably infinite state space, instantaneous reward and costs being uniformly bounded from below
+- [Ying et al.](https://arxiv.org/pdf/2110.08923) (entropy-regularized): finite state space and action space; the admissible policy space is softmax parametrized family. Given above setting, the strong duality is assumed. Appendix D gives a entropy temperature bound for duality gap when strong duality does not hold.
+- [Paternain et al.](https://arxiv.org/pdf/1911.09101):
+
+#### Policy-gradient Method for MDP
+
+#### Outer-loop Optimization method
+
+The inner policy optimization could not achieve the exact the best response for given multiplier, so the gradient information provided by the current policy will not be accurate. This requires the optimization method for the dual multiplier to be robust, in a sense that the algorithm is stable even when the gradient information fluctuates.
+
+[Ying et al.](https://arxiv.org/pdf/2110.08923) (Section 3) chooses first-order methods including [gradient projection method](https://web.mit.edu/dimitrib/www/OntheGoldstein.pdf), [Frank-Wolfe algorithm](https://en.wikipedia.org/wiki/Frank%E2%80%93Wolfe_algorithm).
+
+[Chen et al.](https://doi.org/10.1287/mnsc.2022.03736) (Section 4) and [Ding et al.](https://arxiv.org/pdf/2206.02346) (Section 3) and [Paternain et al.](https://arxiv.org/pdf/1911.09101) (Section VI) choose [projected subgradient method](https://web.stanford.edu/class/ee364b/lectures/subgrad_method_notes.pdf) to update the dual multiplier. One thing reader should check is whether the projection space is the same in these settings.
+
+### Natural Policy Gradient
+
+### Mirror Descent
+
+### Inner Near-optimal vs Sequential Update
+
+[Chen et al.](https://doi.org/10.1287/mnsc.2022.03736) (Section 3) points out the weakness of traditional track of solving the inner loop first and then update the dual is the heavy computation expense. Thus this paper propose one data-driven algorithm that only requires a policy iteration at each iteration. The question how the convergence of such sequential algorithm is established is of great interest.
+
+[Ying et al.](https://arxiv.org/pdf/2110.08923) uses NPG as subroutine to update the primal policy to near optimal for every given multiplier.
