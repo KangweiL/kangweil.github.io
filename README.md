@@ -1,7 +1,27 @@
-# Personal Website!
-First time to be an engineer to create a website. Is it weird to name one repository with the URL of the website?
+# LaTeX rendering fix for kangweil.github.io
 
-## How to upload one new post to blog?
+## Files to replace
 
-- Upload the new md document to the folder .../blog/posts
-- Add one entry to the document to blog/js/posts.js that records the basic information of the post on your website
+Copy these files into the same paths in the repository:
+
+- `blog/index.html`
+- `blog/js/blog.js`
+
+## What was fixed
+
+1. `window.MathJax` is now configured before the MathJax library loads. This enables `$...$`, `$$...$$`, `\(...\)`, and `\[...\]` delimiters.
+2. TeX expressions are temporarily protected while Marked converts Markdown to HTML. This prevents Markdown from removing the backslashes in `\[` and `\]`.
+3. The code waits for MathJax startup and calls `typesetPromise()` after the selected post has been inserted into the page.
+4. Previous MathJax state is cleared before a different post is rendered.
+
+## Deploy
+
+From the repository root, after replacing the files:
+
+```bash
+git add blog/index.html blog/js/blog.js
+git commit -m "Fix LaTeX rendering in blog posts"
+git push origin main
+```
+
+GitHub Pages should redeploy from the `main` branch automatically. After deployment, hard-refresh the blog page to avoid a cached JavaScript file.
