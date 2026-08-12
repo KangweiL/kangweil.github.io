@@ -10,7 +10,7 @@ In this notes, I want to record the literature review on the primal-dual algorit
 
 ## Background
 
-My current research is about the application of Wasserstein policy gradient method on CMDP with primal policy entropy regularized. Through some searching and reading, I found [Ying's paper](https://arxiv.org/pdf/2110.08923) particularly illuminating, since it also considers a primal-dual algorithm for entropy-regularized CMDP. Besides, [Chen's paper](https://doi.org/10.1287/mnsc.2022.03736), [Ding's paper](https://arxiv.org/pdf/2306.11700) are also helpful. There are many other papers considering similar approach, so in this note I want to organize the algorithms in a clearer way.
+My current research is about the application of Wasserstein policy gradient method on CMDP with primal policy entropy regularized. Through some searching and reading, I found [Ying's paper](https://arxiv.org/pdf/2110.08923) particularly interesting, since it also considers entropy-regularized CMDP, but a dual approach is used there. The primal-dual algorithm structure is considered in [Chen's paper](https://doi.org/10.1287/mnsc.2022.03736), [Ding's paper](https://arxiv.org/pdf/2306.11700). There are many other papers considering similar approach, so in this note I want to present some basics for this type of algorithm and there illuminations.
 
 ## Preliminary on Constrained MDP
 
@@ -132,6 +132,8 @@ The inner policy optimization could not achieve the exact the best response for 
 
 #### Mirror Descent method
 
+This is the primal policy update workhorse in [Chen et al.](https://doi.org/10.1287/mnsc.2022.03736). This is particularly interesting since this method is typically for Euclidean optimization, but the "mirror structure" is adapted to the policy space. Thus we present basic knowledge on mirror descent method here.
+
 Mirror descent method is inspired from the quadratic approximation interpretation for gradient descent method.
 
 The usual gradient descent update is $x_{t+1} =x_t-\eta_t\nabla f(x_t).$ It's actually the explicit update form of
@@ -154,6 +156,8 @@ $$z_{t+1}=z_t-\eta_t\nabla f(x_t),$$
 and then map back to the original space by $x_{t+1} = \nabla h^*(z_{t+1})$, where $h^*$ is the convex conjugate of $h$.
 
 The gradient descent can be regarded as a special case of mirror descent with $h(x) = \frac{1}{2}\|x\|_2^2.$
+
+In [Chen et al.](https://doi.org/10.1287/mnsc.2022.03736), the mirror descent method is applied to the policy space, with the Bregman divergence replaced by KL divergence.
 
 ### Primal-Dual Approach Convergence Details
 
